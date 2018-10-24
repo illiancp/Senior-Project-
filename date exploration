@@ -1,1 +1,200 @@
+# Read data into R --------------------------------------------------------
+library(tidyverse)
+library(ggplot2)
+library(stringr)
+
+datasets <- c("2006 data", "2007 data", "2008 data", "2009 data", "2010 data", "2011 data", "2012 data", "2013 data",
+              "2014 data", "2015 data", "2016 data")
+
+for(i in 1:length(datasets)){
+  data <- read.table(paste("C:/Users/cobii/OneDrive/Documents/Senior Project/Fall/Fars Data/", datasets[i],
+                               ".txt", sep = ""), sep="\t", header = TRUE)
+  data <- data[-c(1),]
+  assign(paste0("data_", i+5), data) #remove empty row at beginning of each table
+}
+
+# The first I notice before doing anything with the data, is that the datasets for 06, 07, 08, and 09 are larger than all of the
+# other datasets.  I am not sure where to find information on the reporting of fatal accidents or if it changed, but it is something
+# to look into.  Either there are less fatal accidents as time goes on, especially in the jump from 2009 to 2010, or the way the 
+# data was collected/stored changed during this time.
+
+
+# Merging Data ------------------------------------------------------------
+#First fix column names
+data_6 <- rename(data_6, state = istatenum, date= saccdate,person = ipnumber, city=icity, county= icounty, day_of_month=iaccday, 
+       hour=iacchr, month=iaccmon,year=iaccyr, day_of_week=dayofweek, person_type=iptype, body=ibody, weight=igvwrating)
+
+data_7 <- rename(data_7, state = istatenum, date= saccdate,case = icasenum, city=icity, county= icounty, day_of_month=iaccday, 
+                 hour=iacchr, month=iaccmon,year=iaccyr, day_of_week=dayofweek, person_type=iptype, body=ibody, weight=igvwrating)
+
+data_8 <- rename(data_8, state = istatenum, date= saccdate,case = icasenum, city=icity, county= icounty, day_of_month=iaccday, 
+                 hour=iacchr, month=iaccmon,year=iaccyr, day_of_week=dayofweek, person_type=iptype, body=ibody, weight=igvwrating)
+
+data_9 <- rename(data_9, state = istatenum, date= saccdate,case = icasenum, city=icity, county= icounty, day_of_month=iaccday, 
+                 hour=iacchr, month=iaccmon,year=iaccyr, day_of_week=dayofweek, person_type=iptype, body=ibody, weight=igvwrating)
+
+data_10 <- rename(data_10, case=CaseNum, state= statenum, date=accdate, day_of_month=accday, hour=acchr, month=accmon, year=caseyear,
+                  day_of_week=dayofweek, person_type=ptype, weight=gvwrating)
+
+data_11 <- rename(data_11, case=CaseNum, state= statenum, date=accdate, day_of_month=accday, hour=acchr, month=accmon, year=caseyear,
+                  day_of_week=dayofweek, person_type=ptype, weight=gvwrating)
+
+data_12 <- rename(data_12, case=CaseNum, state= statenum, date=accdate, day_of_month=accday, hour=acchr, month=accmon, year=caseyear,
+                  day_of_week=dayofweek, person_type=ptype, weight=gvwrating)
+
+data_13 <- rename(data_13, case=CaseNum, state= statenum, date=accdate, day_of_month=accday, hour=acchr, month=accmon, year=caseyear,
+                  day_of_week=dayofweek, person_type=ptype, weight=gvwrating)
+
+data_14 <- rename(data_14, case=CaseNum, state= statenum, date=accdate, day_of_month=accday, hour=acchr, month=accmon, year=caseyear,
+                  day_of_week=dayofweek, person_type=ptype, weight=gvwrating)
+
+data_15 <- rename(data_15, case=CaseNum, state= statenum, date=accdate, day_of_month=accday, hour=acchr, month=accmon, year=caseyear,
+                  day_of_week=dayofweek, person_type=ptype, weight=gvwrating)
+
+data_16 <- rename(data_16, case=CaseNum, state= statenum, date=accdate, day_of_month=accday, hour=acchr, month=accmon, year=caseyear,
+                  day_of_week=dayofweek, person_type=ptype, weight=gvwrating)
+
+
+
+data_list <- list(subset(data_6, select=-c(weight, body)), subset(data_7, select = -c(weight, body)),
+                  subset(data_8, select = -c(weight, body)), subset(data_9, select = -c(weight, body)),
+                  subset(data_10, select = -c(weight, body)), subset(data_11, select = -c(weight, body)),
+                  subset(data_12, select = -c(weight, body)), subset(data_13, select = -c(weight)),
+                  subset(data_14, select = -c(weight)), subset(data_15, select = -c(weight)),
+                  subset(data_16, select = -c(weight)))
+
+# data_list <- list(subset(data_6, select=-c(body)), subset(data_7, select = -c(body)), 
+#                   subset(data_8, select = -c(body)), subset(data_9, select = -c(body)), 
+#                   subset(data_10, select = -c(body)), subset(data_11, select = -c(body)), 
+#                   subset(data_12, select = -c(body)), data_13, 
+#                   data_14, data_15, 
+#                   data_16)
+
+
+#combine all data into one dataframe
+full_data <- bind_rows(data_list)
+# save(full_data, file="full_data.Rda")
+
+
+# Plots -------------------------------------------------------------------
+ggplot(data = full_data, mapping = aes(x=day_of_month, y=numfatal)) +
+  geom_line() + scale_x_continuous()
+
+plot(x=full_data$day_of_month, y=full_data$numfatal)
+
+
+
+plot.ts(full_data$numfatal)
+#Appears that there are more fatal accidents towards the end of the month.
+
+ggplot(data = full_data, mapping = aes(x=date, y=numfatal)) +
+  geom_line()
+#not sure how to get this data plotted correctly
+
+table(date)
+
+attach(full_data)
+
+deaths_hour <- table(full_data$hour)[-c(25)]
+
+plot(deaths_hour, type = "l", main= "Accidents from 2006 to 2016 by hour")
+#There appears to be a spike around 4 pm, with the majority of the accidents occuring between 10 am and 8 pm and not many happening
+#in the early morning from 4 am to 8 am.  This appears to be consistent with thoughts of when rush hour is and when most people are
+#making their commutes.
+
+plot(table(year), type="l", main = "Accidents from 2006 to 2016 by year")
+#notice the large decrease in number of cases reported from 2006 to 2010 followed by a large decrease from 2010 on, where the number
+#of accidents reported remains relatively stable.
+
+plot(table(full_data$day_of_week), type="l")
+#can see a clear spike in the number of cases on 6,7 (fri, sat), as well an increase on Sunday.  This supports the common idea that
+#there tends to be more accidents during the weekend compared to during the week.
+
+#May need to create a new dataset with the deaths per day dataset
+
+
+
+# Fix date -----------------------------------------------
+
+# test <- as.Date(paste0("0",full_data$date[1]), format = "%m%d%Y") #figure out how to fix the formatting on of date
+# test
+
+save(full_data, file="full_data.RData")
+
+full_data$date <- as.character(full_data$date)
+
+for(k in 1:length(full_data$date)){
+  if(str_length(full_data$date[k])==7){
+    full_data$new_date[k] <- as.character(as.Date(paste0("0", full_data$date[k]), format = "%m%d%Y"))
+  }else{
+    full_data$new_date[k] <- as.character(as.Date(full_data$date[k], format = "%m%d%Y"))
+  }
+}
+
+
+
+# Useful plots ------------------------------------------------------------
+plot(table(full_data$year), type="l", main = "Accidents from 2006 to 2016 by year")
+#notice the large decrease in number of cases reported from 2006 to 2010 followed by a large decrease from 2010 on, where the number
+#of accidents reported remains relatively stable.
+
+#Deaths per day 2006
+deaths_2006 <- subset(full_data, year==2006)
+deaths_2007 <- subset(full_data, year==2007)
+deaths_2008 <- subset(full_data, year==2008)
+deaths_2009 <- subset(full_data, year==2009)
+deaths_2010 <- subset(full_data, year==2010)
+deaths_2011 <- subset(full_data, year==2011)
+deaths_2012 <- subset(full_data, year==2012)
+deaths_2013 <- subset(full_data, year==2013)
+deaths_2014 <- subset(full_data, year==2014)
+deaths_2015 <- subset(full_data, year==2015)
+deaths_2016 <- subset(full_data, year==2016)
+
+plot.ts(as.data.frame(table(deaths_2006$new_date))[2], main="2006")
+plot.ts(as.data.frame(table(deaths_2007$new_date))[2], main="2007")
+plot.ts(as.data.frame(table(deaths_2008$new_date))[2], main="2008")
+plot.ts(as.data.frame(table(deaths_2009$new_date))[2], main="2009")
+plot.ts(as.data.frame(table(deaths_2010$new_date))[2], main= "2010")
+plot.ts(as.data.frame(table(deaths_2011$new_date))[2], main="2011")
+plot.ts(as.data.frame(table(deaths_2012$new_date))[2], main="2012")
+plot.ts(as.data.frame(table(deaths_2013$new_date))[2], main="2013")
+plot.ts(as.data.frame(table(deaths_2014$new_date))[2], main="2014")
+plot.ts(as.data.frame(table(deaths_2015$new_date))[2], main="2015")
+plot.ts(as.data.frame(table(deaths_2016$new_date))[2], main="2016")
+
+#The first thing that I notice is that after 2009, the max number of fatal car accidents per data decreases from around 150, to somewhere in the range of 15-20.  The number of car accidents for each year appears
+#to be stationary, and has relatively constant variance among each of the years.  After looking into the data I am still unsure why the earlier data has so many more  observations.
+
+
+
+# Tables ------------------------------------------------------------------
+#1: Driver of motor vehicle in transport
+#2: Passenger of motor vehicle in transport
+#3: Occupant of a motor vehicle not in transport
+#4: Occupant of a non-motor vehicle transport device
+#5: Pedestrian
+#6: Bicyclsit
+#7: Other Cyclist
+#8: Other persons on personal Conveyances/ in buildings
+#9: Unknown occupant type
+#10: Persons in/on buildings
+#19: Unknown type of non-motorist
+
+table(deaths_2006$person_type)
+table(deaths_2007$person_type)
+table(deaths_2008$person_type)
+table(deaths_2009$person_type)
+table(deaths_2010$person_type)
+table(deaths_2011$person_type)
+table(deaths_2012$person_type)
+table(deaths_2013$person_type)
+table(deaths_2014$person_type)
+table(deaths_2015$person_type)
+table(deaths_2016$person_type)
+
+#From the tables above it appears that some of the difference in the number of fatalities/ cases comes from a difference in what data was being collected.  It appears that for 2010-2016 the data only tracks two 
+#types of people involved in accidents.  These two groups are the driver and the passenger of the vehicle involved in the crash.  However, even taking this into account, there still does appear to be more cases
+#in the earlier years, even if we just look at the people of type 1 and 2.  I am not sure why there was a change in the collection of the data, but it is definitely something to consider going forward.
+
 
